@@ -33,7 +33,7 @@ public class AnimalAI : MonoBehaviour, IInteractable
 
     // --- NEW INTERACTION CODE BELOW ---
 
-    public string GetInteractionPrompt()
+    public string GetPrompt()
     {
         // Dynamic Text!
         if(isHungry) return $"Feed {animalName}";

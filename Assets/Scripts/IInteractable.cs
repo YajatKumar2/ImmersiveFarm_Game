@@ -1,5 +1,4 @@
-public interface IInteractable
-{
-    string GetInteractionPrompt();
+public interface IInteractable {
+    string GetPrompt();
     void OnInteract();
 }

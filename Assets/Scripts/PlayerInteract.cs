@@ -3,46 +3,35 @@ using TMPro;
 
 public class PlayerInteract : MonoBehaviour
 {
-    [Header("Settings")]
-    public float interactRange = 3f;
-    [SerializeField] private LayerMask interactLayers; // We will set this in Inspector
+    public float range = 3f;
+    public LayerMask interactMask; 
+    public TextMeshProUGUI promptText; // Drag UI Text here later
 
-    [Header("UI References")]
-    public TextMeshProUGUI promptText;
-
-    private void Update()
-    {
-        // Create a ray from the center of the camera
+    void Update() {
+        // Create a ray from the center of the camera shooting forward
         Ray ray = new Ray(transform.position, transform.forward);
         RaycastHit hit;
 
-        // Shoot the laser
-        // Note: We use 'interactLayers' to only hit things we care about (optimization)
-        if (Physics.Raycast(ray, out hit, interactRange, interactLayers))
-        {
-            // Check if the object we hit has the 'IInteractable' interface
-            if (hit.collider.TryGetComponent(out IInteractable interactable))
-            {
-                // Show the text!
-                promptText.text = interactable.GetInteractionPrompt();
-                promptText.gameObject.SetActive(true);
+        // If the ray hits something...
+        if (Physics.Raycast(ray, out hit, range, interactMask)) {
+            
+            // Check if that thing has our Interface
+            IInteractable interactable = hit.collider.GetComponent<IInteractable>();
 
-                // Did we press E?
-                if (Input.GetKeyDown(KeyCode.E))
-                {
+            if (interactable != null) {
+                // If we have a text box, show the prompt
+                if(promptText) promptText.text = interactable.GetPrompt();
+                
+                // If we press E, do the action
+                if (Input.GetKeyDown(KeyCode.E)) {
                     interactable.OnInteract();
                 }
-            }
-            else
-            {
-                // Hit something, but it's not interactable (like a wall)
-                promptText.gameObject.SetActive(false);
+            } else {
+                if(promptText) promptText.text = "";
             }
         }
-        else
-        {
-            // Hit nothing (looking at sky)
-            promptText.gameObject.SetActive(false);
+        else {
+            if(promptText) promptText.text = "";
         }
     }
 }
