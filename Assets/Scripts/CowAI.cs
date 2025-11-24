@@ -1,48 +1,92 @@
 using UnityEngine;
 using UnityEngine.AI;
-using System.Collections; // Required for Coroutines
+using System.Collections;
 
 public class CowAI : MonoBehaviour, IInteractable
 {
     public NavMeshAgent agent;
-    private bool isWaiting = false; // Flag to prevent constant moving
+    public Trough assignedTrough; // <-- CRITICAL: We must drag the trough here
+    
+    // STATES
+    private bool isHungry = false;
+    private bool isEating = false;
 
     void Start() {
         agent = GetComponent<NavMeshAgent>();
-        MoveToRandomPoint();
+        
+        // Start the logic loops
+        StartCoroutine(WanderRoutine());
+        StartCoroutine(HungerTimer());
     }
 
+    // This runs every frame to check logic
     void Update() {
-        // If we are moving AND we are close to destination...
-        if (!isWaiting && agent.remainingDistance <= agent.stoppingDistance) {
-            if (!agent.pathPending) {
-                StartCoroutine(WaitAndRoam());
-            }
+        // Logic: If hungry AND not eating AND trough has food...
+        if (isHungry && !isEating && assignedTrough.hasFood) {
+            MoveToFood();
         }
     }
 
-    IEnumerator WaitAndRoam() {
-        isWaiting = true; // Tell Update() to stop checking
+    void MoveToFood() {
+        agent.SetDestination(assignedTrough.transform.position);
+
+        // Check if close enough to eat (2 meters)
+        float dist = Vector3.Distance(transform.position, assignedTrough.transform.position);
+        if (dist < 2.0f) {
+            StartCoroutine(Eat());
+        }
+    }
+
+    IEnumerator Eat() {
+        isEating = true;
+        agent.isStopped = true; // Freeze movement
+        Debug.Log("Cow is Eating...");
+
+        yield return new WaitForSeconds(3f); // Chew for 3 seconds
+
+        // Finish Eating
+        assignedTrough.EmptyTrough(); // Tell the Trough it's empty
+        isHungry = false;
+        isEating = false;
+        agent.isStopped = false; // Unfreeze
         
-        // Wait for 3 to 6 seconds (Randomly)
-        float waitTime = Random.Range(3f, 6f);
-        yield return new WaitForSeconds(waitTime);
-
-        MoveToRandomPoint();
-        isWaiting = false; // Allow checking again
+        Debug.Log("Cow is Full!");
+        
+        // Restart the wandering logic
+        StartCoroutine(WanderRoutine());
+        StartCoroutine(HungerTimer());
     }
 
-    void MoveToRandomPoint() {
-        Vector3 randomPos = transform.position + Random.insideUnitSphere * 10f;
-        NavMeshHit hit;
-        NavMesh.SamplePosition(randomPos, out hit, 10f, NavMesh.AllAreas);
-        agent.SetDestination(hit.position);
+    // --- WANDER LOGIC (Same as before) ---
+    IEnumerator WanderRoutine() {
+        while (!isHungry) {
+            // Pick random point
+            Vector3 randomPos = transform.position + Random.insideUnitSphere * 4f;
+            NavMeshHit hit;
+            NavMesh.SamplePosition(randomPos, out hit, 4f, NavMesh.AllAreas);
+            agent.SetDestination(hit.position);
+            
+            // Wait 5 seconds before moving again
+            yield return new WaitForSeconds(5f);
+        }
     }
 
-    // Interface Logic
-    public string GetPrompt() { return "Pet Cow"; }
-    public void OnInteract() {
-        Debug.Log("Moo!"); 
-        agent.velocity = Vector3.zero; // Stop moving when petted!
+    // --- HUNGER CLOCK ---
+    IEnumerator HungerTimer() {
+        // Wait 15 seconds, then get hungry
+        yield return new WaitForSeconds(15f);
+        isHungry = true;
+        agent.ResetPath(); // Stop wandering immediately
+        Debug.Log("Cow is HUNGRY!");
+    }
+
+    // --- INTERACTION ---
+    public string GetPrompt() { 
+        if (isHungry) return "Cow is Hungry! (Fill Trough)";
+        return "Pet Cow"; 
+    }
+
+    public void OnInteract() { 
+        Debug.Log("Mooo!"); 
     }
 }
