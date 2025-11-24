@@ -4,14 +4,17 @@ using UnityEngine;
 public class PickupItem : MonoBehaviour, IInteractable
 {
     private Rigidbody rb;
-    private Collider col; // Reference to the Collider
+    private Collider col;
     private Transform holdPoint;
     private bool isHeld = false;
+    
+    // BUG FIX: Prevent instant dropping
+    private float pickupTime; 
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        col = GetComponent<Collider>(); // Get the collider
+        col = GetComponent<Collider>();
         
         if (Camera.main != null)
         {
@@ -21,18 +24,16 @@ public class PickupItem : MonoBehaviour, IInteractable
 
     public string GetPrompt()
     {
-        // We return "" (Empty) when held, so the text doesn't annoy you
         return isHeld ? "" : "Press E to Pick Up";
     }
 
     private void Update()
     {
-        // This listens for E regardless of where you look
-        if (isHeld)
+        // Only allow dropping if 0.5 seconds have passed since pickup
+        if (isHeld && Time.time > pickupTime + 0.5f)
         {
             if (Input.GetKeyDown(KeyCode.E))
             {
-                Debug.Log("Drop Button Pressed!"); // Check Console for this
                 Drop();
             }
         }
@@ -50,38 +51,35 @@ public class PickupItem : MonoBehaviour, IInteractable
     {
         if (holdPoint == null) return;
 
-        // 1. Disable Physics
+        // Set the timer so we don't drop instantly
+        pickupTime = Time.time;
+
         rb.isKinematic = true;
         rb.useGravity = false;
         
-        // 2. DISABLE COLLIDER (Fixes the jitter/glitch)
+        // Disable collider so it doesn't hit the player
         if(col) col.enabled = false;
 
-        // 3. Parent and Snap
         transform.SetParent(holdPoint);
         transform.localPosition = Vector3.zero;
         transform.localRotation = Quaternion.identity;
 
         isHeld = true;
-        Debug.Log("Picked Up");
     }
 
     private void Drop()
     {
-        // 1. Unparent
         transform.SetParent(null);
 
-        // 2. Enable Physics
         rb.isKinematic = false;
         rb.useGravity = true;
 
-        // 3. RE-ENABLE COLLIDER
+        // Re-enable collider
         if(col) col.enabled = true;
 
-        // 4. Throw
+        // Throw force
         rb.AddForce(Camera.main.transform.forward * 5f, ForceMode.Impulse);
 
         isHeld = false;
-        Debug.Log("Dropped");
     }
 }
