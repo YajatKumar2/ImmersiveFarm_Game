@@ -1,15 +1,26 @@
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Playables; // Needed for Timeline
+using UnityEngine.UI;        // <--- NEEDED FOR UI (Hunger Bar)
 using System.Collections;
 
 public class CowAI : MonoBehaviour, IInteractable
 {
+    [Header("Components")]
     public NavMeshAgent agent;
-    public Trough assignedTrough; // <-- CRITICAL: We must drag the trough here
+    public Trough assignedTrough;
+    
+    [Header("UI Settings")]
+    public Image hungerBar; // <--- The missing variable!
+    
+    [Header("Milking Settings")]
+    public GameObject milkPrefab;           
+    public PlayableDirector timelineDirector; 
     
     // STATES
     private bool isHungry = false;
     private bool isEating = false;
+    private bool isReadyToMilk = false; 
 
     void Start() {
         agent = GetComponent<NavMeshAgent>();
@@ -19,10 +30,8 @@ public class CowAI : MonoBehaviour, IInteractable
         StartCoroutine(HungerTimer());
     }
 
-    // This runs every frame to check logic
     void Update() {
-        // Logic: If hungry AND not eating AND trough has food...
-        if (isHungry && !isEating && assignedTrough.hasFood) {
+        if (isHungry && !isEating && !isReadyToMilk && assignedTrough.hasFood) {
             MoveToFood();
         }
     }
@@ -30,63 +39,107 @@ public class CowAI : MonoBehaviour, IInteractable
     void MoveToFood() {
         agent.SetDestination(assignedTrough.transform.position);
 
-        // Check if close enough to eat (2 meters)
-        float dist = Vector3.Distance(transform.position, assignedTrough.transform.position);
-        if (dist < 2.0f) {
-            StartCoroutine(Eat());
+        if (Vector3.Distance(transform.position, assignedTrough.transform.position) < 2.5f) {
+            StartCoroutine(EatRoutine());
         }
     }
 
-    IEnumerator Eat() {
+    IEnumerator EatRoutine() {
         isEating = true;
-        agent.isStopped = true; // Freeze movement
+        agent.isStopped = true; 
         Debug.Log("Cow is Eating...");
 
-        yield return new WaitForSeconds(3f); // Chew for 3 seconds
+        yield return new WaitForSeconds(3f); 
 
-        // Finish Eating
-        assignedTrough.EmptyTrough(); // Tell the Trough it's empty
-        isHungry = false;
+        assignedTrough.EmptyTrough(); 
+        
+        // SWITCH STATE: Ready for Milking
         isEating = false;
-        agent.isStopped = false; // Unfreeze
+        isHungry = false;
+        isReadyToMilk = true; 
         
-        Debug.Log("Cow is Full!");
+        Debug.Log("Cow is Full & Ready to Milk!");
+    }
+
+    IEnumerator MilkingAction() {
+        // 1. Play Timeline
+        if (timelineDirector) {
+            timelineDirector.Play();
+            yield return new WaitForSeconds((float)timelineDirector.duration);
+        }
+        else {
+            yield return new WaitForSeconds(2f);
+        }
+
+        // 2. Spawn Milk
+        Instantiate(milkPrefab, transform.position + (transform.right * 0.7f) + Vector3.up, Quaternion.identity);
+
+        // 3. Reset
+        isReadyToMilk = false;
+        agent.isStopped = false; 
         
-        // Restart the wandering logic
         StartCoroutine(WanderRoutine());
         StartCoroutine(HungerTimer());
     }
 
-    // --- WANDER LOGIC (Same as before) ---
-    IEnumerator WanderRoutine() {
-        while (!isHungry) {
-            // Pick random point
-            Vector3 randomPos = transform.position + Random.insideUnitSphere * 4f;
-            NavMeshHit hit;
-            NavMesh.SamplePosition(randomPos, out hit, 4f, NavMesh.AllAreas);
-            agent.SetDestination(hit.position);
-            
-            // Wait 5 seconds before moving again
-            yield return new WaitForSeconds(5f);
-        }
-    }
-
-    // --- HUNGER CLOCK ---
-    IEnumerator HungerTimer() {
-        // Wait 15 seconds, then get hungry
-        yield return new WaitForSeconds(15f);
-        isHungry = true;
-        agent.ResetPath(); // Stop wandering immediately
-        Debug.Log("Cow is HUNGRY!");
-    }
-
     // --- INTERACTION ---
     public string GetPrompt() { 
-        if (isHungry) return "Cow is Hungry! (Fill Trough)";
+        if (isHungry) return "Cow is Hungry! (Go to Silo and Fill Trough)";
+        if (isReadyToMilk) return "Press E to Milk Cow"; 
         return "Pet Cow"; 
     }
 
     public void OnInteract() { 
-        Debug.Log("Mooo!"); 
+        if (isReadyToMilk) {
+            StartCoroutine(MilkingAction());
+        }
+        else {
+            Debug.Log("Moo!"); 
+        }
+    }
+
+    // --- WANDER LOGIC ---
+    IEnumerator WanderRoutine() {
+        while (!isHungry && !isReadyToMilk) {
+            Vector3 randomPos = transform.position + Random.insideUnitSphere * 4f;
+            NavMeshHit hit;
+            NavMesh.SamplePosition(randomPos, out hit, 4f, NavMesh.AllAreas);
+            agent.SetDestination(hit.position);
+            yield return new WaitForSeconds(5f);
+        }
+    }
+
+    // --- HUNGER CLOCK & UI UPDATE ---
+    IEnumerator HungerTimer() {
+        float timeToHungry = 30f; 
+        float timer = 0f;
+
+        // Reset Bar to Green
+        if(hungerBar) {
+            hungerBar.color = Color.green;
+            hungerBar.fillAmount = 1f;
+        }
+
+        // Count up
+        while (timer < timeToHungry) {
+            timer += Time.deltaTime;
+            
+            // Drain the bar
+            if(hungerBar) {
+                hungerBar.fillAmount = 1f - (timer / timeToHungry);
+            }
+            
+            yield return null; 
+        }
+
+        // Finished
+        isHungry = true;
+        agent.ResetPath();
+        
+        // Turn Red
+        if(hungerBar) {
+            hungerBar.color = Color.red;
+            hungerBar.fillAmount = 1f; 
+        }
     }
 }
