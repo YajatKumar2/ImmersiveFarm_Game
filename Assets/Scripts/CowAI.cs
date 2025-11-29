@@ -111,7 +111,7 @@ public class CowAI : MonoBehaviour, IInteractable
 
     // --- HUNGER CLOCK & UI UPDATE ---
     IEnumerator HungerTimer() {
-        float timeToHungry = 30f; 
+        float timeToHungry = 10f; 
         float timer = 0f;
 
         // Reset Bar to Green
