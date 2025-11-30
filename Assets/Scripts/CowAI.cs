@@ -6,6 +6,15 @@ using System.Collections;
 
 public class CowAI : MonoBehaviour, IInteractable
 {
+    [Header("Effects")]
+    public GameObject poofEffect;
+
+    [Header("Audio")]
+    public AudioClip mooSound;
+    public AudioClip eatSound;
+    private AudioSource audioPlayer;
+
+
     [Header("Components")]
     public NavMeshAgent agent;
     public Trough assignedTrough;
@@ -24,6 +33,8 @@ public class CowAI : MonoBehaviour, IInteractable
 
     void Start() {
         agent = GetComponent<NavMeshAgent>();
+
+        audioPlayer = GetComponent<AudioSource>();
         
         // Start the logic loops
         StartCoroutine(WanderRoutine());
@@ -46,6 +57,9 @@ public class CowAI : MonoBehaviour, IInteractable
 
     IEnumerator EatRoutine() {
         isEating = true;
+
+        if(audioPlayer && eatSound) audioPlayer.PlayOneShot(eatSound);
+        
         agent.isStopped = true; 
         Debug.Log("Cow is Eating...");
 
@@ -71,6 +85,10 @@ public class CowAI : MonoBehaviour, IInteractable
             yield return new WaitForSeconds(2f);
         }
 
+        //1.Poof, visual effect
+        //if(poofEffect) 
+        Instantiate(poofEffect, transform.position + (transform.right * 0.7f) + (Vector3.up * 2), Quaternion.identity);
+
         // 2. Spawn Milk
         Instantiate(milkPrefab, transform.position + (transform.right * 0.7f) + Vector3.up, Quaternion.identity);
 
@@ -95,6 +113,8 @@ public class CowAI : MonoBehaviour, IInteractable
         }
         else {
             Debug.Log("Moo!"); 
+            if(audioPlayer && mooSound) audioPlayer.PlayOneShot(mooSound);
+            
         }
     }
 
@@ -111,7 +131,7 @@ public class CowAI : MonoBehaviour, IInteractable
 
     // --- HUNGER CLOCK & UI UPDATE ---
     IEnumerator HungerTimer() {
-        float timeToHungry = 10f; 
+        float timeToHungry = 2f; 
         float timer = 0f;
 
         // Reset Bar to Green

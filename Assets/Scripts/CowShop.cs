@@ -26,6 +26,9 @@ public class CowShop : MonoBehaviour, IInteractable
         // 2. Pay the price
         GameManager.Instance.AddMoney(-cost);
         
+        AudioSource audio = GetComponent<AudioSource>();
+        if(audio) audio.Play(); //This plays whatever audio is in the filee 
+
         // 3. Create the Cow
         GameObject newCow = Instantiate(cowPrefab, spawnPoint.position, spawnPoint.rotation);
         
