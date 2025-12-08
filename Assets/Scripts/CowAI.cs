@@ -20,7 +20,7 @@ public class CowAI : MonoBehaviour, IInteractable
     public Trough assignedTrough;
     
     [Header("UI Settings")]
-    public Image hungerBar; // <--- The missing variable!
+    public Image hungerBar; // <--- The bar
     
     [Header("Milking Settings")]
     public GameObject milkPrefab;           
@@ -131,7 +131,7 @@ public class CowAI : MonoBehaviour, IInteractable
 
     // --- HUNGER CLOCK & UI UPDATE ---
     IEnumerator HungerTimer() {
-        float timeToHungry = 2f; 
+        float timeToHungry = 10f; 
         float timer = 0f;
 
         // Reset Bar to Green
