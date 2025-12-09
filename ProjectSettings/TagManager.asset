@@ -7,6 +7,8 @@ TagManager:
   - CinemachineTarget
   - Pickup
   - Milk
+  - Egg
+  - GooseFood
   layers:
   - Default
   - TransparentFX
