@@ -13,12 +13,24 @@ public class CowShop : MonoBehaviour, IInteractable
     }
 
     public void OnInteract() {
-        // 1. Check if we have enough money
+        // 1. Check if we have money
         if (GameManager.Instance.money >= cost) {
-            BuyCow();
+            
+            // 2. Ask Manager: "Can I please put a cow somewhere?"
+            bool success = FarmManager.Instance.TryBuyCow();
+
+            if (success) {
+                // 3. Only take money if the Manager said YES
+                GameManager.Instance.AddMoney(-cost);
+                Debug.Log("Cow Purchased!");
+            }
+            else {
+                // Manager said NO (Farms are full)
+                Debug.Log("Not enough space!");
+            }
         } 
         else {
-            Debug.Log("Not enough cash! You need $" + cost);
+            Debug.Log("Not enough money!");
         }
     }
 

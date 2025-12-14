@@ -2,53 +2,34 @@ using UnityEngine;
 
 public class GooseShop : MonoBehaviour, IInteractable
 {
+    // You can rename this class to 'ChickenShop' if your file is named ChickenShop.cs
+    // MAKE SURE the class name matches the file name!
+
     [Header("Shop Settings")]
-    public GameObject goosePrefab;
+    public int cost = 30; // Price of one goose
 
-    public Transform spawnPoint;
-
-    public GooseTrough coopTrough;
-
-    public AudioClip sellSound;
-
-    public int cost = 30;
-
-    public string GetPrompt(){
+    public string GetPrompt() {
         return "Buy Goose ($" + cost + ")";
     }
 
-    public void OnInteract(){
-        if(GameManager.Instance.money >= cost){
-            BuyBird();
-        }
-        else{
+    public void OnInteract() {
+        // 1. Check Money
+        if (GameManager.Instance.money >= cost) {
+            
+            // 2. Ask the Manager to find a spot
+            bool success = FarmManager.Instance.TryBuyGoose();
+
+            if (success) {
+                // 3. Only pay if the Manager found a spot
+                GameManager.Instance.AddMoney(-cost);
+                Debug.Log("Goose Purchased!");
+            }
+            else {
+                Debug.Log("No space! Buy more Goose Land.");
+            }
+        } 
+        else {
             Debug.Log("Not enough cash!");
         }
     }
-
-    void BuyBird(){
-        GameManager.Instance.AddMoney(-cost);
-
-        GameObject newBird = Instantiate(goosePrefab, spawnPoint.position, spawnPoint.rotation);
-
-        GooseAI brain = newBird.GetComponent<GooseAI>();
-        if (brain != null){
-            brain.assignedTrough = coopTrough;
-        }
-        if(sellSound) AudioSource.PlayClipAtPoint(sellSound, transform.position);
-
-        Debug.Log("Goose Purchased!");
-    }
-
-    /*// Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }*/
 }
