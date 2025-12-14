@@ -6,6 +6,8 @@ public class CowShop : MonoBehaviour, IInteractable
     public GameObject cowPrefab;   // The Blueprint (Your Cow_Root Prefab)
     public Transform spawnPoint;   // Where to drop it
     public Trough barnTrough;      // The Trough the new cow should use
+    public AudioClip sellSound;
+    
     public int cost = 100;
 
     public string GetPrompt() {
@@ -22,6 +24,8 @@ public class CowShop : MonoBehaviour, IInteractable
             if (success) {
                 // 3. Only take money if the Manager said YES
                 GameManager.Instance.AddMoney(-cost);
+                if(sellSound) AudioSource.PlayClipAtPoint(sellSound, transform.position);
+                
                 Debug.Log("Cow Purchased!");
             }
             else {

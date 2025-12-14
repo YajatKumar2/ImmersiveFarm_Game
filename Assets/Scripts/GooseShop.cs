@@ -7,6 +7,8 @@ public class GooseShop : MonoBehaviour, IInteractable
 
     [Header("Shop Settings")]
     public int cost = 30; // Price of one goose
+    public AudioClip sellSound;
+    
 
     public string GetPrompt() {
         return "Buy Goose ($" + cost + ")";
@@ -22,6 +24,7 @@ public class GooseShop : MonoBehaviour, IInteractable
             if (success) {
                 // 3. Only pay if the Manager found a spot
                 GameManager.Instance.AddMoney(-cost);
+                if(sellSound) AudioSource.PlayClipAtPoint(sellSound, transform.position);
                 Debug.Log("Goose Purchased!");
             }
             else {
