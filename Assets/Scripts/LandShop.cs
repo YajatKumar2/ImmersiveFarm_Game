@@ -9,19 +9,21 @@ public class LandShop : MonoBehaviour, IInteractable
         return "Expand Cow Farm ($" + cost + ")";
     }
 
-    public void OnInteract() {
-        if (GameManager.Instance.money >= cost) {
-            
-            // 1. Pay Money
-            GameManager.Instance.AddMoney(-cost);
-            
-            // 2. SPECIFICALLY buy a Cow Farm
-            FarmManager.Instance.BuyNewCowFarm(); // <--- FIX IS HERE
-            
-            Debug.Log("Cow Land Purchased!");
-        }
-        else {
-            Debug.Log("Not enough money for Cow Land!");
-        }
+    public void OnInteract(){
+    if (GameManager.Instance.money < cost) {
+        Debug.Log("Not enough money for Cow Land!");
+        return;
     }
+
+    if (FarmManager.Instance.BuyNewCowFarm())
+    {
+        GameManager.Instance.AddMoney(-cost);
+        Debug.Log("Cow Land Purchased!");
+    }
+    else
+    {
+        Debug.Log("Cannot buy Cow Land, limit reached!");
+    }
+    }
+
 }

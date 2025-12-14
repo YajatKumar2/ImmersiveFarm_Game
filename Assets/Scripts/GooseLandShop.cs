@@ -9,19 +9,21 @@ public class GooseLandShop : MonoBehaviour, IInteractable
         return "Expand Goose Farm ($" + cost + ")";
     }
 
-    public void OnInteract() {
-        if (GameManager.Instance.money >= cost) {
-            
-            // 1. Pay Money
-            GameManager.Instance.AddMoney(-cost);
-            
-            // 2. SPECIFICALLY buy a Goose Farm
-            FarmManager.Instance.BuyNewGooseFarm(); 
-            
-            Debug.Log("Goose Land Purchased!");
-        }
-        else {
-            Debug.Log("Not enough money for Goose Land!");
-        }
+    public void OnInteract(){
+    if (GameManager.Instance.money < cost) {
+        Debug.Log("Not enough money for Goose Land!");
+        return;
     }
+
+    if (FarmManager.Instance.BuyNewGooseFarm())
+    {
+        GameManager.Instance.AddMoney(-cost);
+        Debug.Log("Goose Land Purchased!");
+    }
+    else
+    {
+        Debug.Log("Cannot buy Goose Land – limit reached!");
+    }
+    }
+
 }

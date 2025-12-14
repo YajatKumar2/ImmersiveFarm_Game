@@ -5,7 +5,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance; // Allows other scripts to find this easily
 
-    public int money = 6000;
+    public int money = 100;
     public TextMeshProUGUI moneyText; // Drag your UI Text here
 
     void Awake() {

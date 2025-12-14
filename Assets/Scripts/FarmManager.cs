@@ -9,14 +9,19 @@ public class FarmManager : MonoBehaviour
     [Header("Cow Settings")]
     public GameObject cowFarmPrefab;    
     public Transform cowStartOrigin;    
-    public float farmWidth = 20f;       
-    public int maxFarms = 3;            
+    public float farmWidth = 20f;    
+    public int maxFarms = 3;
+
+
     private List<FarmUnit> activeCowFarms = new List<FarmUnit>();
 
     // ================== GOOSE SETTINGS (NEW) ==================
     [Header("Goose Settings")]
     public GameObject gooseFarmPrefab;      // Drag ChickenFarm_Template here
     public Transform gooseStartOrigin;      // Where the first goose pen spawns
+    
+    public int maxGooseFarms = 3;     
+
     private List<ChickenFarmUnit> activeGooseFarms = new List<ChickenFarmUnit>();
 
     void Awake() {
@@ -41,13 +46,17 @@ public class FarmManager : MonoBehaviour
         return false; 
     }
 
-    public void BuyNewCowFarm() {
-        if (activeCowFarms.Count >= maxFarms) return;
+    public bool BuyNewCowFarm() {
+        if (activeCowFarms.Count >= maxFarms){
+            Debug.Log("Max cow farms reached!"); 
+            return false;
+        }
         SpawnNewCowFarm();
+        return true;
     }
 
     void SpawnNewCowFarm() {
-        Vector3 spawnPos = cowStartOrigin.position + (Vector3.right * (activeCowFarms.Count * farmWidth));
+        Vector3 spawnPos = cowStartOrigin.position + (Vector3.left * (activeCowFarms.Count * farmWidth));
         GameObject newFarm = Instantiate(cowFarmPrefab, spawnPos, Quaternion.identity);
         activeCowFarms.Add(newFarm.GetComponent<FarmUnit>());
     }
@@ -71,9 +80,15 @@ public class FarmManager : MonoBehaviour
     }
 
     // 2. Called by a future "Buy Goose Land" button
-    public void BuyNewGooseFarm() {
+    public bool BuyNewGooseFarm() {
         // You can add a max limit check here if you want (like Cows)
+        if (activeGooseFarms.Count >= maxGooseFarms){
+            Debug.Log("Max Goose farms reached!"); 
+            return false;
+        }
         SpawnNewGooseFarm();
+        return true;
+        
     }
 
     // 3. The math to place the farm
