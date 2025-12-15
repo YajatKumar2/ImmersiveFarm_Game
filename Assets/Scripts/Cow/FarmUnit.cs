@@ -3,17 +3,17 @@ using UnityEngine;
 public class FarmUnit : MonoBehaviour
 {
     [Header("Setup")]
-    public Transform[] slots;       // Drag Slot_1, Slot_2, etc here
-    public GameObject animalPrefab; // Drag Cow_Root Prefab
-    public GameObject troughPrefab; // Drag Trough Prefab
+    public Transform[] slots;       
+    public GameObject animalPrefab; 
+    public GameObject troughPrefab; 
 
     private int currentCount = 0;
 
     // The Manager calls this function
     public bool TrySpawnAnimal() {
-        // 1. Check if full
+        
         if (currentCount >= slots.Length) {
-            return false; // Farm is full!
+            return false;
         }
 
         // 2. Get the specific positions from the current slot
