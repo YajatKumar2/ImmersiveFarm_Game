@@ -54,6 +54,26 @@ public class CowAI : MonoBehaviour, IInteractable
             StartCoroutine(EatRoutine());
         }
     }
+    /*void MoveToFood()
+    {
+        NavMeshHit hit;
+
+        // Find nearest valid NavMesh point near the trough
+        if (NavMesh.SamplePosition(
+            assignedTrough.transform.position,
+            out hit,
+            1.5f, // search radius
+            NavMesh.AllAreas))
+        {
+            agent.SetDestination(hit.position);
+        }
+
+        if (Vector3.Distance(transform.position, assignedTrough.transform.position) < 2.5f)
+        {
+            StartCoroutine(EatRoutine());
+        }
+    }*/
+
 
     IEnumerator EatRoutine() {
         isEating = true;
@@ -131,7 +151,7 @@ public class CowAI : MonoBehaviour, IInteractable
 
     // --- HUNGER CLOCK & UI UPDATE ---
     IEnumerator HungerTimer() {
-        float timeToHungry = 10f; 
+        float timeToHungry = 30f; 
         float timer = 0f;
 
         // Reset Bar to Green

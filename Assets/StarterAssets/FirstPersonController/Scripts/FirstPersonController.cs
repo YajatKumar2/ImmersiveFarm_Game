@@ -112,9 +112,11 @@ namespace StarterAssets
 
 		private void Update()
 		{
-			JumpAndGravity();
 			GroundedCheck();
+			JumpAndGravity();
 			Move();
+
+
 		}
 
 		private void LateUpdate()
@@ -202,6 +204,8 @@ namespace StarterAssets
 		{
 			if (Grounded)
 			{
+				//Debug.Log($"Grounded: {Grounded}, Y-Vel: {_verticalVelocity}");
+
 				// reset the fall timeout timer
 				_fallTimeoutDelta = FallTimeout;
 
